@@ -1,3 +1,4 @@
 # heka
 
-visualizador dckv (DICOM contextual key value) escrito en rust
+(Egyptian god of magic and medicine)
+viewer html5 dckv (DICOM contextual key value) written in rust
