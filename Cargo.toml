@@ -1,0 +1,3 @@
+[workspace]
+members = ["app", "dckv"]
+resolver = "2"

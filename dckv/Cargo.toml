@@ -1,0 +1,11 @@
+[package]
+name = "dckv"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+thiserror = "1.0.50"
+log = "0.4.20"
+tokio = { version = "1.33.0", features = ["full"] }
+async-trait = "0.1.80"
+async-recursion = "1.1.1"

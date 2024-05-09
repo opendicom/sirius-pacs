@@ -1,0 +1,9 @@
+[package]
+name = "sirius-pacs"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+dckv = { path = "../dckv" }
+tokio = { version = "1.33.0", features = ["full"] }
+async-trait = "0.1.74"
