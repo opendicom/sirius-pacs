@@ -24,7 +24,7 @@ impl Parse for Shared {
             "({:04x},{:04x}) {} {} {}",
             key.group(),
             key.element(),
-            key.vr(),
+            key.vr().unwrap_or_default(),
             key.level(),
             value.to_string(vr),
         );

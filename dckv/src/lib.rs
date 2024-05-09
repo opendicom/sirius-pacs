@@ -1,3 +1,6 @@
+//! Dicom Contextualized Key Value (DCKV) is a new representation for DICOM objects.
+//! This library is a framework for serializing and deserializing DICOM objects into a key-value arrays.
+
 use std::str;
 
 mod error;
@@ -87,7 +90,8 @@ impl Key {
     }
 
     #[inline]
-    pub fn vr(&self) -> &str {
-        str::from_utf8(&self.key[self.level * 8 + 4..self.level * 8 + 6]).unwrap_or_default()
+    pub fn vr(&self) -> Result<&str> {
+        let vr_text = str::from_utf8(&self.key[self.level * 8 + 4..self.level * 8 + 6])?;
+        Ok(vr_text)
     }
 }
