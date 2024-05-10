@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use std::io::SeekFrom;
 use tokio::io::{AsyncReadExt, AsyncSeekExt};
 
-use crate::{vr, DCKVError, Key, KeyBlocks, Result};
+use crate::{vr, DCKVError, Filter, Key, KeyBlocks, Result};
 
 #[inline]
 #[async_recursion(?Send)]
@@ -13,6 +13,7 @@ async fn parser<'r, S, R>(
     key_depth: &mut usize,
     key_blocks: &mut KeyBlocks,
     length: u64,
+    filter: &Filter,
 ) -> Result<()>
 where
     S: Clone + Parse,
@@ -71,7 +72,7 @@ where
             | vr::UL
             | vr::US => {
                 key_blocks[*key_depth] = ((tag as u64) << 32) + ((vr as u64) << 16);
-                let key = Key::new(key_blocks);
+                let key = Key::from_key_blocks(key_blocks);
 
                 shared.append(reader, key, vl as usize, Some(vr)).await;
             }
@@ -89,7 +90,7 @@ where
             | vr::OW
             | vr::UN => {
                 key_blocks[*key_depth] = ((tag as u64) << 32) + ((vr as u64) << 16);
-                let key = Key::new(key_blocks);
+                let key = Key::from_key_blocks(key_blocks);
                 let vll = reader.read_u32_le().await?;
 
                 shared.append(reader, key, vll as usize, Some(vr)).await;
@@ -97,7 +98,7 @@ where
             // Sequence
             vr::SQ => {
                 key_blocks[*key_depth] = (tag as u64) << 32;
-                let key = Key::new(key_blocks);
+                let key = Key::from_key_blocks(key_blocks);
 
                 shared.append(reader, key, 0, Some(vr)).await;
 
@@ -125,8 +126,7 @@ where
                                 *key_depth += 1;
                                 key_blocks[*key_depth] = 0x2b2b0000;
 
-                                let key = Key::new(key_blocks);
-
+                                let key = Key::from_key_blocks(key_blocks);
                                 shared.append(reader, key, 0, None).await;
 
                                 let item_length = reader.read_u32_le().await?;
@@ -141,11 +141,12 @@ where
                                     reader.stream_position().await? + seq_length as u64
                                 };
 
-                                parser(shared, reader, key_depth, key_blocks, item_offset).await?;
+                                parser(shared, reader, key_depth, key_blocks, item_offset, filter)
+                                    .await?;
 
                                 key_blocks[*key_depth] = 0xFFFFFFFF5F5F0000;
-                                let key = Key::new(key_blocks);
 
+                                let key = Key::from_key_blocks(key_blocks);
                                 shared.append(reader, key, 0, None).await;
 
                                 key_blocks[*key_depth] = 0x0;
@@ -157,7 +158,7 @@ where
                                 key_blocks[*key_depth] &= 0xFFFFFFFF00000000;
                                 key_blocks[*key_depth] |= 0x00000000FFFF0000;
 
-                                let key = Key::new(key_blocks);
+                                let key = Key::from_key_blocks(key_blocks);
                                 shared.append(reader, key, 0, None).await;
 
                                 // skip item length (4 bytes).
@@ -171,7 +172,7 @@ where
                         key_blocks[*key_depth] &= 0xFFFFFFFF00000000;
                         key_blocks[*key_depth] |= 0x00000000FFFF0000;
 
-                        let key = Key::new(key_blocks);
+                        let key = Key::from_key_blocks(key_blocks);
                         shared.append(reader, key, 0, None).await;
 
                         break;
@@ -195,7 +196,7 @@ where
     Self: Clone,
 {
     #[inline]
-    async fn parse<R>(&mut self, mut reader: R) -> Result<()>
+    async fn parse<R>(&mut self, mut reader: R, filter: &Filter) -> Result<()>
     where
         R: AsyncReadExt + AsyncSeekExt + Unpin,
     {
@@ -205,12 +206,20 @@ where
         // skip preamble
         reader.seek(SeekFrom::Start(144)).await?;
 
-        parser(self, &mut reader, &mut key_depth, &mut key_blocks, u64::MAX).await?;
+        parser(
+            self,
+            &mut reader,
+            &mut key_depth,
+            &mut key_blocks,
+            u64::MAX,
+            filter,
+        )
+        .await?;
 
         Ok(())
     }
 
-    async fn append<R>(&mut self, reader: &mut R, key: Key, vl: usize, vr: Option<u16>)
+    async fn append<R>(&mut self, reader: &mut R, key: Key, length: usize, vr: Option<u16>)
     where
         R: AsyncReadExt + AsyncSeekExt + Unpin;
 }
@@ -221,6 +230,11 @@ pub struct Value {
 }
 
 impl Value {
+    #[inline]
+    pub fn new(bytes: Vec<u8>) -> Self {
+        Self { bytes }
+    }
+
     #[inline]
     pub async fn read<R>(reader: &mut R, offset: usize) -> Result<Self>
     where
@@ -251,5 +265,15 @@ impl Value {
             Some(_) => String::from_utf8_lossy(&self.bytes).to_string(),
             None => String::new(),
         }
+    }
+
+    #[inline]
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+
+    #[inline]
+    pub fn into_bytes(self) -> Vec<u8> {
+        self.bytes
     }
 }

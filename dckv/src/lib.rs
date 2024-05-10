@@ -4,10 +4,14 @@
 use std::str;
 
 mod error;
+mod kvmap;
 mod parser;
+mod filter;
 
 pub use error::DCKVError;
+pub use kvmap::KVMap;
 pub use parser::{Parse, Value};
+pub use filter::Filter;
 
 pub type Result<T> = std::result::Result<T, DCKVError>;
 
@@ -55,43 +59,55 @@ type KeyBlocks = [u64; 12];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Key {
-    key: Vec<u8>,
-    level: usize,
+    bytes: Vec<u8>,
 }
 
 impl Key {
     #[inline]
-    fn new(key_blocks: &mut [u64; 12]) -> Self {
-        let key = key_blocks
+    fn from_key_blocks(key_blocks: &mut [u64; 12]) -> Self {
+        let bytes = key_blocks
             .iter()
             .filter(|&&t| t != 0)
             .flat_map(|&t| t.to_be_bytes())
             .collect::<Vec<u8>>();
 
-        Self {
-            level: (key.len() / 8).saturating_sub(1),
-            key,
-        }
+        Self { bytes }
     }
 
     #[inline]
     pub fn level(&self) -> usize {
-        self.level
+        (self.bytes.len() / 8).saturating_sub(1)
     }
 
     #[inline]
     pub fn group(&self) -> u16 {
-        u16::from_be_bytes([self.key[self.level * 8], self.key[self.level * 8 + 1]])
+        u16::from_be_bytes([
+            self.bytes[self.level() * 8],
+            self.bytes[self.level() * 8 + 1],
+        ])
     }
 
     #[inline]
     pub fn element(&self) -> u16 {
-        u16::from_be_bytes([self.key[self.level * 8 + 2], self.key[self.level * 8 + 3]])
+        u16::from_be_bytes([
+            self.bytes[self.level() * 8 + 2],
+            self.bytes[self.level() * 8 + 3],
+        ])
     }
 
     #[inline]
     pub fn vr(&self) -> Result<&str> {
-        let vr_text = str::from_utf8(&self.key[self.level * 8 + 4..self.level * 8 + 6])?;
+        let vr_text = str::from_utf8(&self.bytes[self.level() * 8 + 4..self.level() * 8 + 6])?;
         Ok(vr_text)
+    }
+
+    #[inline]
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+
+    #[inline]
+    pub fn into_bytes(self) -> Vec<u8> {
+        self.bytes
     }
 }

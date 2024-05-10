@@ -4,7 +4,7 @@ use tokio::io::AsyncReadExt;
 use tokio::time::Instant;
 use tokio::{fs::File, io::AsyncSeekExt};
 
-use dckv::{Key, Parse, Value};
+use dckv::{KVMap, Key, Parse, Value, Filter};
 
 #[derive(Clone)]
 struct Shared;
@@ -42,9 +42,13 @@ async fn main() {
 
     let cursor = Cursor::new(buffer);
 
-    let mut data = Shared;
+    //let mut data = Shared;
 
-    data.parse(cursor).await.unwrap();
+    //data.parse(cursor, &Filter::none()).await.unwrap();
+
+    let mut kvmap = KVMap::new();
+
+    kvmap.parse(cursor, &Filter::none()).await.unwrap();
 
     println!("{}", now.elapsed().as_micros());
 }

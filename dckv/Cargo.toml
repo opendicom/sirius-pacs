@@ -9,3 +9,4 @@ log = "0.4.20"
 tokio = { version = "1.33.0", features = ["full"] }
 async-trait = "0.1.80"
 async-recursion = "1.1.1"
+indexmap = "2.2.6"
