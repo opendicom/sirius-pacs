@@ -16,7 +16,7 @@ async fn parser<'r, S, R>(
     filter: &Filter,
 ) -> Result<()>
 where
-    S: Clone + Parse,
+    S: Clone + Deserializer,
     R: AsyncReadExt + AsyncSeekExt + Unpin,
 {
     loop {
@@ -191,12 +191,12 @@ where
 }
 
 #[async_trait(?Send)]
-pub trait Parse
+pub trait Deserializer
 where
     Self: Clone,
 {
     #[inline]
-    async fn parse<R>(&mut self, mut reader: R, filter: &Filter) -> Result<()>
+    async fn deserialize<R>(&mut self, mut reader: R, filter: &Filter) -> Result<()>
     where
         R: AsyncReadExt + AsyncSeekExt + Unpin,
     {

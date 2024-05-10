@@ -4,13 +4,13 @@ use tokio::io::AsyncReadExt;
 use tokio::time::Instant;
 use tokio::{fs::File, io::AsyncSeekExt};
 
-use dckv::{KVMap, Key, Parse, Value, Filter};
+use dckv::{KVMap, Key, Deserializer, Value, Filter};
 
 #[derive(Clone)]
 struct Shared;
 
 #[async_trait(?Send)]
-impl Parse for Shared {
+impl Deserializer for Shared {
     async fn append<R: AsyncReadExt + AsyncSeekExt + Unpin>(
         &mut self,
         reader: &mut R,
@@ -48,7 +48,7 @@ async fn main() {
 
     let mut kvmap = KVMap::new();
 
-    kvmap.parse(cursor, &Filter::none()).await.unwrap();
+    kvmap.deserialize(cursor, &Filter::none()).await.unwrap();
 
     println!("{}", now.elapsed().as_micros());
 }

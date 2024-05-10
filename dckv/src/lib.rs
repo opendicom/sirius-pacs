@@ -10,7 +10,7 @@ mod filter;
 
 pub use error::DCKVError;
 pub use kvmap::KVMap;
-pub use parser::{Parse, Value};
+pub use parser::{Deserializer, Value};
 pub use filter::Filter;
 
 pub type Result<T> = std::result::Result<T, DCKVError>;

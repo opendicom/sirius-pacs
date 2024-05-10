@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use indexmap::IndexMap;
 use tokio::io::{AsyncReadExt, AsyncSeekExt};
 
-use crate::{Key, Parse, Value};
+use crate::{Key, Deserializer, Value};
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct KVMap {
@@ -37,7 +37,7 @@ impl KVMap {
 }
 
 #[async_trait(?Send)]
-impl Parse for KVMap {
+impl Deserializer for KVMap {
     #[inline]
     async fn append<R: AsyncReadExt + AsyncSeekExt + Unpin>(
         &mut self,
