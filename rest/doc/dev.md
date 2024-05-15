@@ -1,0 +1,1 @@
+RUST_LOG="DEBUG,tower_http=trace" cargo watch -x 'run --bin rest'
