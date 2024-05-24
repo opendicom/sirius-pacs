@@ -1,13 +1,14 @@
 # sirius-pacs
 
-pacs and viewer html5 dckv j2h written in rust. 
+sirius-pacs is the server used by sirius-view on the client side. 
 
-sirius-pacs is responsible to serve studies already organized in a storage and indexed in a table where the columns are matching fields for study selection. 
+sirius-pacs is responsible to serve studies as fast as posible to the html5 viewer.
 
-sirius-pacs does not agregate new studies to the storage and index. This task is reserved to sirius-store.
+sirius-pacs does not agregate new studies. This task is reserved to sirius-store.
 
-dckv (DICOM Contextual Key Value) is described at length in https://github.com/jacquesfauquex/DCKV
+sirius-pacs uses dicom representation eDCKV (DCKV with series+instance prefix). 
+DCKV (DICOM Contextual Key Value) and eDCKV are described at length in https://github.com/jacquesfauquex/DCKV
 
-j2h is the high throughput protocol of jpeg 2000
+sirius-pacs uses pixel compression j2k 4 quality layers on the storage side and j2h (high throughput protocol of jpeg 2000) to comunicate with sirius-view. This implies that sirius-pacs includes a transcoder j2k>j2h
 
-Detailed documentation in the [wiki](https://github.com/opendicom/sirius-pacs/wiki)
+Detailed documentation of sirius-pacs in the [wiki](https://github.com/opendicom/sirius-pacs/wiki)
