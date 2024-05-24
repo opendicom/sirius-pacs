@@ -11,4 +11,4 @@ DCKV (DICOM Contextual Key Value) and eDCKV are described at length in https://g
 
 sirius-pacs uses pixel compression j2k 4 quality layers on the storage side and j2h (high throughput protocol of jpeg 2000) to comunicate with sirius-view. This implies that sirius-pacs includes a transcoder j2k>j2h
 
-Detailed documentation of sirius-pacs in the [wiki](https://github.com/opendicom/sirius-pacs/wiki)
+Detailed documentation of sirius-pacs in this [wiki](https://github.com/opendicom/sirius-pacs/wiki) and of sirius-view in this other [wiki](https://github.com/opendicom/sirius-view/wiki)
